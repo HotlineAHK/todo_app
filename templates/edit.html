@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card p-4 mx-auto shadow-sm" style="max-width: 500px;">
+    <h4 class="mb-3">Редактировать задачу</h4>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <div class="mb-3">
+            {{ form.title.label(class="form-label") }}
+            {{ form.title(class="form-control" + (" is-invalid" if form.title.errors else "")) }}
+        </div>
+        <div class="mb-3">
+            {{ form.description.label(class="form-label") }}
+            {{ form.description(class="form-control", rows=3) }}
+        </div>
+        <div class="mb-3">
+            {{ form.deadline.label(class="form-label") }}
+            {{ form.deadline(class="form-control" + (" is-invalid" if form.deadline.errors else "")) }}
+            {% for error in form.deadline.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+        </div>
+        <div class="mb-3">
+            {{ form.priority.label(class="form-label") }}
+            {{ form.priority(class="form-select") }}
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Сохранить изменения</button>
+        <a href="/" class="btn btn-link mt-2 w-100 text-center">Отмена</a>
+    </form>
+</div>
+{% endblock %}

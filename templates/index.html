@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card p-3 shadow-sm">
+            <h5 class="card-title">Новая задача</h5>
+            <form method="POST" action="/">
+                {{ form.hidden_tag() }}
+                <div class="mb-2">
+                    {{ form.title.label(class="form-label") }}
+                    {{ form.title(class="form-control" + (" is-invalid" if form.title.errors else "")) }}
+                </div>
+                <div class="mb-2">
+                    {{ form.description.label(class="form-label") }}
+                    {{ form.description(class="form-control", rows=2) }}
+                </div>
+                <div class="mb-2">
+                    {{ form.deadline.label(class="form-label") }}
+                    {{ form.deadline(class="form-control" + (" is-invalid" if form.deadline.errors else "")) }}
+                    {% for error in form.deadline.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="mb-3">
+                    {{ form.priority.label(class="form-label") }}
+                    {{ form.priority(class="form-select") }}
+                </div>
+                {{ form.submit(class="btn btn-primary w-100") }}
+            </form>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <h4 class="mb-3 d-flex justify-content-between align-items-center">
+            Задачи
+            <span class="badge bg-primary fs-6">Выполнено {{ done_count }} из {{ total }}</span>
+        </h4>
+
+        {% macro render_task(task, css_class="") %}
+        <div class="list-group-item {{ css_class }} d-flex justify-content-between align-items-center">
+            <div>
+                <h6 class="mb-1 {% if task.is_done %}text-decoration-line-through text-muted{% endif %}">
+                    {{ task.title }}
+                    <span class="badge text-bg-{% if task.priority == "high" %}danger{% elif task.priority == "medium" %}warning{% else %}info{% endif %} ms-2">{{ task.priority }}</span>
+                </h6>
+                <small class="mb-1 d-block">{{ task.description }}</small>
+                <div class="small text-muted mt-1">🕒 {{ task.deadline.strftime("%d.%m.%Y %H:%M") }}</div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <form action="/toggle/{{ task.id }}" method="POST" class="m-0">
+                    <button class="btn btn-sm {% if task.is_done %}btn-warning{% else %}btn-success{% endif %}">
+                        {% if task.is_done %}Отменить{% else %}✓{% endif %}
+                    </button>
+                </form>
+                <a href="/edit/{{ task.id }}" class="btn btn-sm btn-outline-primary">✎</a>
+                <form action="/delete/{{ task.id }}" method="POST" class="m-0">
+                    <button class="btn btn-sm btn-outline-danger">✕</button>
+                </form>
+            </div>
+        </div>
+        {% endmacro %}
+
+        <div class="list-group mb-5 shadow-sm">
+            {% if grouped.overdue %}<div class="list-group-item list-group-item-dark fw-bold">🔥 Просроченные</div>{% endif %}
+            {% for t in grouped.overdue %}{{ render_task(t, "list-group-item-danger") }}{% endfor %}
+
+            {% if grouped.today %}<div class="list-group-item list-group-item-dark fw-bold">⚡ Сегодня</div>{% endif %}
+            {% for t in grouped.today %}{{ render_task(t, "list-group-item-warning") }}{% endfor %}
+
+            {% if grouped.this_week %}<div class="list-group-item list-group-item-dark fw-bold">📅 На этой неделе</div>{% endif %}
+            {% for t in grouped.this_week %}{{ render_task(t) }}{% endfor %}
+
+            {% if grouped.later %}<div class="list-group-item list-group-item-dark fw-bold">⏳ Позже</div>{% endif %}
+            {% for t in grouped.later %}{{ render_task(t) }}{% endfor %}
+
+            {% if grouped.completed %}<div class="list-group-item list-group-item-dark fw-bold">✅ Выполненные</div>{% endif %}
+            {% for t in grouped.completed %}{{ render_task(t, "bg-light") }}{% endfor %}
+            
+            {% if total == 0 %}
+            <div class="list-group-item text-center text-muted p-4">Нет задач. Добавьте новую!</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
